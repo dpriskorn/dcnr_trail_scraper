@@ -72,7 +72,10 @@ class DcnrScraper(BaseModel):
                     raise MissingInformationError("no county-wrapper")
                 link = soup.select_one("a.trail-site-link")
                 if link:
-                    website = link["href"]
+                    try:
+                        website = link["href"]
+                    except KeyError:
+                        website = ""
                 else:
                     website = ""
                     # raise MissingInformationError(f"no link, see {url}")
