@@ -74,7 +74,8 @@ class DcnrScraper(BaseModel):
                 if link:
                     website = link["href"]
                 else:
-                    raise MissingInformationError(f"no link, see {url}")
+                    website = ""
+                    # raise MissingInformationError(f"no link, see {url}")
                 trail = Trail(
                     label=label,
                     trail_id=i,
