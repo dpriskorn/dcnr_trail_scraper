@@ -83,3 +83,8 @@ class DcnrScraper(BaseModel):
             else:
                 pass
                 # print(f"got {response.status_code}")
+
+    def write_trails_to_jsonl_file(self):
+        with open("trails.jsonl", "w") as file:
+            for trail in self.trails:
+                file.write(f"{trail.dict()}\n")
