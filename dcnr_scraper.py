@@ -2,16 +2,17 @@ import logging
 from enum import Enum
 from typing import List
 
-import requests
+from rich.console import Console
 from bs4 import BeautifulSoup
 from pydantic import BaseModel
 from requests import Session
 
 logger = logging.getLogger(__name__)
+console = Console()
+
 
 class Difficulty(Enum):
     UNKNOWN = "Unknown"
-
 
 
 class Trail(BaseModel):
@@ -20,7 +21,11 @@ class Trail(BaseModel):
     difficulty: Difficulty
     length: float
     description = "hiking trail in Pennsylvania"
-    county: str
+    county: List[str]
+
+    @property
+    def trail_url(self):
+        return f"https://trails.dcnr.pa.gov/trails/trail/trailview?trailkey={i}"
 
 
 class MissingInformationError(BaseException):
@@ -36,30 +41,32 @@ class DcnrScraper(BaseModel):
             url = f"https://trails.dcnr.pa.gov/trails/trail/trailview?trailkey={i}"
             response = session.get(url)
             if response.status_code == 200:
-                print("got 200")
+                # print("got 200")
                 soup = BeautifulSoup(response.text)
                 h1 = soup.select_one("h1")
                 if h1:
                     label = h1.text
-                    print(label)
+                    # print(label)
                 else:
                     raise MissingInformationError("no h1")
                 difficulty_span = soup.select_one("#difficulty")
                 if difficulty_span:
                     difficulty = difficulty_span.text
-                    print(difficulty)
+                    # print(difficulty)
                 else:
                     raise MissingInformationError("no difficulty")
                 length_span = soup.select_one("#length")
                 if length_span:
-                    length = length_span.text
-                    print(length)
+                    length = float(length_span.text.replace(" Miles", ""))
+                    # print(length)
                 else:
                     raise MissingInformationError("no length")
-                county_wrapper_span = soup.select_one("#county-wrapper")
-                if county_wrapper_span:
-                    county = county_wrapper_span.text
-                    print(county)
+                county_wrapper_spans = soup.select_one("#county-wrapper").soup.select("#county-wrapper")
+                if len(county_wrapper_spans):
+                    counties = []
+                    for county in county_wrapper_spans:
+                        counties.append(county.text)
+                    #console.print(counties)
                 else:
                     raise MissingInformationError("no county-wrapper")
                 trail = Trail(
@@ -67,10 +74,10 @@ class DcnrScraper(BaseModel):
                     trail_id=i,
                     difficulty=Difficulty(difficulty),
                     length=length,
-                    county=county
+                    counties=counties,
                 )
                 self.trails.append(trail)
-                print(trail.dict())
+                console.print(trail.dict())
             else:
                 pass
                 # print(f"got {response.status_code}")
