@@ -9,11 +9,6 @@ from rich.console import Console
 logger = logging.getLogger(__name__)
 console = Console()
 
-
-# class Difficulty(Enum):
-#     UNKNOWN = "Unknown"
-
-
 class Trail(BaseModel):
     label: str
     trail_id: int
@@ -91,12 +86,3 @@ class DcnrScraper(BaseModel):
                 self.trails.append(trail)
                 console.print(trail.dict())
                 trail.write_to_file()
-            else:
-                pass
-                # print(f"got {response.status_code}")
-
-    def write_trails_to_jsonl_file(self):
-        console.print("Writing to file")
-        with open("trails.jsonl", "w") as file:
-            for trail in self.trails:
-                file.write(f"{trail.dict()}\n")
