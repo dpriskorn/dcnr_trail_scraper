@@ -11,17 +11,18 @@ logger = logging.getLogger(__name__)
 console = Console()
 
 
-class Difficulty(Enum):
-    UNKNOWN = "Unknown"
+# class Difficulty(Enum):
+#     UNKNOWN = "Unknown"
 
 
 class Trail(BaseModel):
     label: str
     trail_id: int
-    difficulty: Difficulty
+    difficulty: str
     length: float
     description = "hiking trail in Pennsylvania"
     counties: List[str]
+    website: str
 
     @property
     def trail_url(self):
@@ -37,7 +38,7 @@ class DcnrScraper(BaseModel):
 
     def start(self):
         session = Session()
-        for i in range(0, 10):
+        for i in range(0, 1000):
             url = f"https://trails.dcnr.pa.gov/trails/trail/trailview?trailkey={i}"
             response = session.get(url)
             if response.status_code == 200:
@@ -71,12 +72,18 @@ class DcnrScraper(BaseModel):
                         #console.print(counties)
                 else:
                     raise MissingInformationError("no county-wrapper")
+                link = soup.select_one("a.trail-site-link")
+                if link:
+                    website = link["href"]
+                else:
+                    raise MissingInformationError(f"no link, see {url}")
                 trail = Trail(
                     label=label,
                     trail_id=i,
-                    difficulty=Difficulty(difficulty),
+                    difficulty=difficulty,
                     length=length,
                     counties=counties,
+                    website=website
                 )
                 self.trails.append(trail)
                 console.print(trail.dict())
@@ -85,6 +92,7 @@ class DcnrScraper(BaseModel):
                 # print(f"got {response.status_code}")
 
     def write_trails_to_jsonl_file(self):
+        console.print("Writing to file")
         with open("trails.jsonl", "w") as file:
             for trail in self.trails:
                 file.write(f"{trail.dict()}\n")
