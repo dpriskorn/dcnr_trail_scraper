@@ -21,7 +21,7 @@ class Trail(BaseModel):
     difficulty: Difficulty
     length: float
     description = "hiking trail in Pennsylvania"
-    county: List[str]
+    counties: List[str]
 
     @property
     def trail_url(self):
@@ -61,12 +61,14 @@ class DcnrScraper(BaseModel):
                     # print(length)
                 else:
                     raise MissingInformationError("no length")
-                county_wrapper_spans = soup.select_one("#county-wrapper").soup.select("#county-wrapper")
-                if len(county_wrapper_spans):
+                div_county = soup.select_one("#county-wrapper")
+                if div_county:
                     counties = []
-                    for county in county_wrapper_spans:
-                        counties.append(county.text)
-                    #console.print(counties)
+                    county_wrapper_spans = div_county.select(".county-wrapper")
+                    if len(county_wrapper_spans):
+                        for county in county_wrapper_spans:
+                            counties.append(county.text)
+                        #console.print(counties)
                 else:
                     raise MissingInformationError("no county-wrapper")
                 trail = Trail(
