@@ -24,9 +24,8 @@ class Trail(BaseModel):
     counties: List[str]
     website: str
 
-    @property
     def trail_url(self):
-        return f"https://trails.dcnr.pa.gov/trails/trail/trailview?trailkey={i}"
+        return f"https://trails.dcnr.pa.gov/trails/trail/trailview?trailkey={self.trail_id}"
 
 
 class MissingInformationError(BaseException):
