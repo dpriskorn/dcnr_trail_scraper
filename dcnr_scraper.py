@@ -6,25 +6,10 @@ from pydantic import BaseModel
 from requests import Session
 from rich.console import Console
 
+from trail import Trail
+
 logger = logging.getLogger(__name__)
 console = Console()
-
-class Trail(BaseModel):
-    label: str
-    trail_id: int
-    difficulty: str
-    length: float
-    description = "hiking trail in Pennsylvania"
-    counties: List[str]
-    website: str
-
-    def trail_url(self):
-        return f"https://trails.dcnr.pa.gov/trails/trail/trailview?trailkey={self.trail_id}"
-
-    def write_to_file(self):
-        #console.print("Writing to file")
-        with open("trails.jsonl", "a") as file:
-            file.write(f"{self.dict()}\n")
 
 
 class MissingInformationError(BaseException):
@@ -36,7 +21,7 @@ class DcnrScraper(BaseModel):
 
     def start(self):
         session = Session()
-        for i in range(0, 10):
+        for i in range(518, 800):
             url = f"https://trails.dcnr.pa.gov/trails/trail/trailview?trailkey={i}"
             response = session.get(url)
             if response.status_code == 200:
